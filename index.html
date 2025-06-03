@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle">Breakfast Counter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f0f4f8; 
+        }
+        .main-container {
+            background-color: white;
+            padding: 2rem; 
+            border-radius: 0.75rem; 
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); 
+            width: 100%;
+        }
+        @media (min-width: 640px) { 
+            .main-container {
+                padding: 2.5rem; 
+            }
+        }
+
+        .tab-button { 
+            padding: 0.75rem 1.25rem; 
+            border-radius: 0.5rem 0.5rem 0 0; 
+            font-weight: 600; 
+            transition: all 0.3s ease-in-out; 
+            border-bottom: 4px solid transparent; 
+            color: #4b5563; 
+            margin-bottom: -2px; 
+        }
+        .tab-button.active { 
+            background-color: #3b82f6; 
+            color: white; 
+            box-shadow: 0 -2px 8px -1px rgba(59, 130, 246, 0.3); 
+            border-bottom-color: #3b82f6; 
+            position: relative; 
+            z-index: 10;
+        }
+        .tab-button:not(.active):hover { 
+            background-color: #eef2ff; 
+            color: #3730a3; 
+            border-bottom-color: #a5b4fc; 
+        }
+        .tab-navigation-container { 
+            border-bottom: 2px solid #d1d5db; 
+            margin-bottom: 2rem; 
+        }
+
+        .section-title { 
+            font-size: 1.75rem; 
+            font-weight: 800; 
+            margin-bottom: 1.75rem; 
+            color: #1e3a8a; 
+            padding-bottom: 0.75rem;
+        }
+        
+        .room-order-entry-row { /* Reverted from .room-order-entry for individual row styling */
+            display: flex; 
+            align-items: center; 
+            gap: 0.75rem;
+            margin-bottom: 1rem; 
+            padding: 0.875rem; 
+            border-radius: 0.5rem; 
+            background-color: #ffffff;
+            box-shadow: 0 1px 3px 0 rgba(0,0,0,0.07), 0 1px 2px -1px rgba(0,0,0,0.05);
+            transition: all 0.25s ease-in-out;
+        }
+        .room-order-entry-row:hover { /* Reverted hover style */
+            background-color: #eff6ff; 
+            box-shadow: 0 6px 12px -1px rgba(0,0,0,0.08); 
+            transform: translateY(-2px) scale(1.01); 
+        }
+        .room-number-label { 
+            font-weight: 700; color: #111827; 
+            font-size: 1.125rem; 
+            min-width: 5.5rem; /* Ensure consistent width */
+        }
+        .room-order-text-input { /* For the single text input per room */
+            flex-grow: 1;
+            padding: 0.75rem 1rem; 
+            border: 1px solid #cbd5e1; 
+            border-radius: 0.375rem; 
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); 
+            font-size: 0.9rem;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .room-order-text-input:focus { 
+            border-color: #2563eb; 
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3); 
+            outline: none; 
+        }
+
+
+        .customization-item { 
+            border: 1px solid #e5e7eb; 
+            border-radius: 0.75rem; 
+            margin-bottom:1.25rem; 
+            background-color: #ffffff; 
+            box-shadow: 0 4px 12px -1px rgba(0,0,0,0.06), 0 2px 8px -2px rgba(0,0,0,0.04); 
+            overflow: hidden; 
+        }
+        .customization-item-header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 1rem 1.25rem; 
+            cursor: pointer; 
+            background-color: #f9fafb; 
+            border-bottom: 1px solid #f3f4f6; 
+        }
+         .customization-item-body.hidden + .customization-item-header {
+            border-bottom-color: transparent; 
+        }
+        .customization-item-header:hover { background-color: #f0f4f8; } 
+        .customization-item-info { font-weight: 600; color: #111827; }
+        .customization-item-time { font-size: 0.8rem; color: #4b5563; margin-left: 0.5rem; background-color: #e0e7ff; padding: 0.1rem 0.4rem; border-radius: 0.25rem;}
+        .customization-item-status { 
+            font-size: 0.875rem; color: #4b5563; margin-left: 0.75rem; 
+            flex-grow: 1; text-align: right; padding-right: 0.75rem;
+            font-style: italic;
+        }
+        .customize-btn { 
+            font-size: 0.875rem; padding: 0.5rem 1rem; 
+            border-radius: 0.375rem; background-color: #2563eb; 
+            color:white; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+        }
+        .customize-btn:hover { background-color: #1d4ed8; transform: translateY(-1px) scale(1.02); }
+        .customization-item-body { padding: 1.5rem; background-color: white; } 
+        .component-checkbox-label { margin-right: 1.25rem; font-size: 0.9rem; display:inline-flex; align-items:center; margin-bottom: 0.625rem;}
+        .component-checkbox { margin-right: 0.4rem; width: 1.125rem; height: 1.125rem; accent-color: #2563eb; border-radius: 0.25rem; }
+        .comment-input, .marmalade-qty-select { 
+            width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; 
+            border-radius: 0.375rem; font-size: 0.9rem; margin-top: 0.75rem;
+        }
+        .marmalade-qty-select { width: auto; min-width: 8rem;}
+
+
+        .summary-card { 
+            background-color: white; border-radius: 0.75rem; 
+            padding: 1.75rem; 
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.07), 0 4px 6px -4px rgba(0,0,0,0.05); 
+            margin-top:1.75rem; 
+        }
+        .summary-header { 
+            border-bottom: 1px solid #e5e7eb; padding-bottom: 1.25rem; margin-bottom: 1.5rem; 
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .summary-header h2 { font-size: 1.875rem; font-weight: 800; color: #1e3a8a; } 
+        .summary-header .total { font-size: 1.375rem; color: #1d4ed8; font-weight: 700; } 
+        .summary-group li { 
+            padding: 0.875rem; border-radius: 0.5rem; 
+            display: flex; align-items: flex-start; 
+            transition: background-color 0.2s;
+            line-height: 1.6; 
+        }
+        .summary-group li:hover { background-color: #eff6ff; }
+        .summary-group li:nth-child(odd):not(:hover) { background-color: #f9fafb; }
+        .summary-group .count { 
+            font-weight: 700; 
+            min-width: 50px; display: inline-block; 
+            color: #1e40af; 
+            font-size: 1.125rem;
+            margin-right: 0.5rem; 
+        }
+        .summary-group .details { color: #374151; flex-grow: 1; } 
+        .summary-group .standard { color: #059669; font-weight:600; }
+        .summary-group .comment-display { font-style: italic; color: #6b7280; font-size: 0.875rem; display: block; margin-top: 0.375rem;}
+        #messageText { white-space: pre-wrap; }
+
+        .grand-total-summary {
+            margin-top: 2.5rem; padding: 1.5rem;
+            background-color: #1e3a8a; color: white;
+            border-radius: 0.75rem; text-align: center;
+            box-shadow: 0 10px 20px -5px rgba(30, 58, 138, 0.5);
+        }
+        .grand-total-summary p { font-size: 1.5rem; font-weight: 700; }
+        .grand-total-summary span { font-size: 2rem; font-weight: 800; margin-left: 0.5rem; color: #93c5fd; }
+
+        .action-button {
+            font-weight: 600; padding-top: 0.75rem; padding-bottom: 0.75rem; 
+            padding-left: 1.5rem; padding-right: 1.5rem;
+            border-radius: 0.5rem; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.06); 
+            focus:outline-none focus:ring-2 focus:ring-opacity-75; 
+            transition: all 0.25s ease-in-out; 
+        }
+        .action-button:hover {
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1); 
+            transform: translateY(-2px);
+        }
+        .action-button:active { transform: translateY(0px); box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); }
+
+        .primary-button { background-color: #2563eb; hover:bg-[#1d4ed8]; color:white; focus:ring-blue-500; } 
+        .secondary-button { background-color: #6b7280; hover:bg-[#4b5563]; color:white; focus:ring-gray-500; }
+        .tertiary-button { background-color: #8b5cf6; hover:bg-[#7c3aed]; color:white; focus:ring-purple-500; } 
+        .success-button { background-color: #059669; hover:bg-[#047857]; color:white; focus:ring-green-500; } 
+        .danger-button { background-color: #dc2626; hover:bg-[#b91c1c]; color:white; focus:ring-red-500; } 
+        .warning-button { background-color: #f59e0b; hover:bg-[#d97706]; color:black; focus:ring-amber-500; }
+
+        /* Styles for Time Overview Tab */
+        .time-slot-card {
+            background-color: #fff; border: 1px solid #e5e7eb;
+            border-radius: 0.75rem; margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.04);
+        }
+        .time-slot-header {
+            padding: 1rem 1.25rem; font-size: 1.25rem; font-weight: 700;
+            color: #1e3a8a; border-bottom: 1px solid #e5e7eb;
+        }
+        .time-slot-header.before-0700 {
+            background-color: #fee2e2; color: #b91c1c; border-left: 5px solid #ef4444; 
+        }
+        .time-slot-summary {
+            padding: 0.75rem 1.25rem; font-size: 0.9rem; color: #374151;
+            display: flex; flex-wrap: wrap; gap: 0.5rem 1rem;
+            border-bottom: 1px dashed #e5e7eb;
+        }
+        .time-slot-summary span { font-weight: 500; }
+        .time-slot-details-toggle {
+            display: block; width: calc(100% - 2.5rem); margin: 0.75rem auto 0.75rem auto;
+            text-align: center; padding: 0.5rem; font-size: 0.875rem; font-weight: 500;
+            color: #2563eb; background-color: #eff6ff; border-radius: 0.375rem;
+            cursor: pointer; transition: background-color 0.2s;
+        }
+        .time-slot-details-toggle:hover { background-color: #dbeafe; }
+        .time-slot-room-list { padding: 0 1.25rem 1.25rem 1.25rem; }
+        .time-slot-room-list ul { list-style: none; padding-left: 0; }
+        .time-slot-room-list li {  padding: 0.5rem 0;  border-bottom: 1px solid #f3f4f6; font-size: 0.9rem; }
+        .time-slot-room-list li:last-child { border-bottom: none; }
+        .time-slot-room-list .room-info { font-weight: 600; }
+        .time-slot-room-list .order-details { color: #4b5563; margin-left: 0.5rem; }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen p-4 selection:bg-sky-500 selection:text-white">
+
+    <div class="main-container">
+        <div class="text-right mb-6">
+            <button id="languageSwitcher" class="text-sm text-blue-600 hover:text-blue-800 hover:underline font-medium transition-colors">Switch to English</button>
+        </div>
+
+        <header class="mb-8 sm:mb-10 text-center">
+            <h1 id="headerTitle" class="text-4xl sm:text-5xl font-extrabold text-slate-800 tracking-tight">Breakfast Counter</h1>
+            <p id="headerSubtitle" class="text-slate-600 mt-3 text-base sm:text-lg">Bestellungen eingeben, anpassen und Produktionsübersicht erstellen.</p>
+        </header>
+
+        <div class="mb-8 flex justify-center sm:justify-start space-x-1 sm:space-x-2 tab-navigation-container">
+            <button id="tabInput" class="tab-button active">1. Bestellungen & Ibelsa</button>
+            <button id="tabCustomize" class="tab-button">2. Bestellungen anpassen</button>
+            <button id="tabSummary" class="tab-button">3. Produktionsübersicht</button>
+            <button id="tabTimeOverview" class="tab-button">4. Zeitübersicht</button> 
+        </div>
+        
+        <main>
+            <section id="inputSection" class="space-y-6">
+                <h2 id="inputSectionTitle" class="section-title">Bestellungen pro Zimmer & Ibelsa Gesamt</h2>
+                 <div class="mb-6 p-5 bg-blue-50 border-2 border-blue-200 rounded-lg shadow-sm">
+                    <label for="ibelsaTotalInput" id="ibelsaLabel" class="block text-sm font-semibold text-blue-800 mb-1.5">Ibelsa Gesamt (Frühstück):</label>
+                    <input type="number" id="ibelsaTotalInput" class="w-full p-3 border border-blue-400 rounded-md shadow-sm focus:ring-2 focus:ring-blue-600 focus:border-blue-600 text-lg" placeholder="Gesamtzahl von Ibelsa">
+                </div>
+                <div id="roomOrdersContainer" class="max-h-[70vh] overflow-y-auto pr-2 p-1 space-y-2"></div> 
+                <button id="processOrdersButton" class="w-full action-button primary-button">
+                    Bestellungen verarbeiten & Anpassen
+                </button>
+                <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <button id="saveSessionButton" class="w-full action-button tertiary-button">Sitzung speichern</button>
+                    <button id="loadSessionButton" class="w-full action-button tertiary-button">Gespeicherte Sitzung laden</button>
+                    <button id="clearSavedSessionButton" class="w-full action-button warning-button">Gespeicherte Daten löschen</button>
+                </div>
+            </section>
+
+            <section id="customizationSection" class="hidden space-y-6">
+                <h2 id="customizationSectionTitle" class="section-title">Sonderwünsche anpassen</h2>
+                <div id="customizationContainer" class="max-h-[60vh] overflow-y-auto pr-2 space-y-4"></div>
+                <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                     <button id="printRoomOrdersButton" class="w-full action-button secondary-button">Zimmerbestellungen drucken</button>
+                     <button id="generateSummaryButton" class="w-full action-button success-button">
+                        Produktionsübersicht erstellen
+                    </button>
+                </div>
+            </section>
+
+            <section id="summarySection" class="hidden space-y-6">
+                <h2 id="summarySectionTitle" class="section-title">Produktionsübersicht</h2>
+                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                    <button id="compareIbelsaButton" class="w-full action-button primary-button">
+                        Mit Ibelsa vergleichen
+                    </button>
+                    <button id="printProductionListButton" class="w-full action-button secondary-button">Produktionsliste drucken</button>
+                    <button id="exportOrdersButton" class="w-full action-button tertiary-button">Bestellungen exportieren (JSON)</button>
+                </div>
+                <div id="summaryOutputContainer" class="space-y-8"></div>
+                <div id="grandTotalSection"></div>
+            </section>
+
+            <section id="timeOverviewSection" class="hidden space-y-6">
+                <h2 id="timeOverviewSectionTitle" class="section-title">Zeitbasierte Übersicht</h2>
+                <div id="timeOverviewContainer" class="space-y-6"></div>
+            </section>
+
+             <button id="clearAllDataButton" class="mt-10 w-full action-button danger-button">
+                Alle Daten zurücksetzen & Speicher leeren
+            </button>
+        </main>
+
+        <div id="messageBox" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm overflow-y-auto h-full w-full flex items-center justify-center hidden z-50 p-4">
+            <div class="bg-white p-7 rounded-xl shadow-2xl max-w-lg w-full transform transition-all duration-150 ease-out scale-95 opacity-0" id="messageBoxContent">
+                <h3 id="messagePopupTitle" class="text-xl font-semibold leading-6 text-slate-800">Nachricht</h3>
+                <div class="mt-3"><p id="messagePopupText" class="text-sm text-slate-600">Ihre Nachricht hier.</p></div>
+                <div class="mt-6 text-right">
+                    <button id="messageOkButton" type="button" class="action-button primary-button px-6">
+                        OK
+                    </button>
+                </div>
+            </div>
+        </div>
+        <footer class="mt-12 text-center"><p class="text-xs text-slate-500">&copy; Edward Elmer 2025</p></footer>
+    </div>
+
+    <script>
+        let currentLanguage = 'de';
+        let allProcessedOrders = []; 
+        let ibelsaTotalFromInput = null;
+        const LOCAL_STORAGE_KEY = 'breakfastCounterSessionData_v7_roomTextInputs'; // New key for this input format
+
+
+        const breakfastDefinitions = {
+            H: { nameKey: 'herzName', code: 'H', components: ['Wurst', 'Käse', 'Gemüse', 'Butter'] },
+            S: { nameKey: 'suessName', code: 'S', components: ['Butter'], hasMarmaladeQty: true, defaultMarmaladeQty: 4 },
+            G: { nameKey: 'gruenName', code: 'G', components: ['Veganer Aufschnitt', 'Käse', 'Gemüse', 'Butter'], hasMarmaladeQty: true, defaultMarmaladeQty: 4 },
+            V: { nameKey: 'veganName', code: 'V', components: ['Veganer Aufschnitt', 'Veganer Käse', 'Gemüse', 'Margarine', 'Marmelade'] },
+            E: { nameKey: 'extraName', code: 'E', components: [] },
+            K: { nameKey: 'kaesetellerName', code: 'K', components: [] }
+        };
+        
+        const languageStrings = {
+            de: {
+                htmlLang: "de", pageTitle: "Breakfast Counter", langSwitcherText: "Switch to English",
+                headerTitle: "Breakfast Counter", headerSubtitle: "Bestellungen eingeben, anpassen und Produktionsübersicht erstellen.",
+                tabInput: "1. Bestellungen & Ibelsa", tabCustomize: "2. Bestellungen anpassen", tabSummary: "3. Produktionsübersicht", tabTimeOverview: "4. Zeitübersicht", 
+                inputSectionTitle: "Bestellungen pro Zimmer & Ibelsa Gesamt", processOrdersButton: "Bestellungen verarbeiten & Anpassen",
+                customizationSectionTitle: "Sonderwünsche anpassen", customizeButtonLabel: "Anpassen", commentLabel: "Kommentar:", marmaladeQtyLabel: "Marmelade Anzahl:",
+                timeOverviewSectionTitle: "Zeitbasierte Übersicht der Bestellungen", 
+                timeSlotBefore0700: "Vor 07:00", 
+                timeSlotLabel: "Bestellungen um {0}", 
+                showRoomDetailsButton: "Raumdetails anzeigen", 
+                hideRoomDetailsButton: "Raumdetails ausblenden", 
+                noOrdersInTimeSlot: "Keine Bestellungen für dieses Zeitfenster.", 
+                roomTimeLabel: "Zeit:", roomOrderInputLabel: "Bestellcodes (z.B. 2H S 0830):", // Updated for single text input
+                saveSessionButton: "Sitzung speichern", loadSessionButton: "Gespeicherte Sitzung laden", clearSavedSessionButton: "Gespeicherte Daten löschen",
+                exportOrdersButton: "Bestellungen exportieren (JSON)",
+                printRoomOrdersButton: "Zimmerbestellungen drucken", 
+                generateSummaryButton: "Produktionsübersicht erstellen",
+                summarySectionTitle: "Produktionsübersicht", ibelsaLabel: "Ibelsa Gesamt (Frühstück):", ibelsaPlaceholder: "Gesamtzahl von Ibelsa", 
+                compareIbelsaButton: "Mit Ibelsa vergleichen", printProductionListButton: "Produktionsliste drucken", 
+                clearAllDataButton: "Alle Daten zurücksetzen & Speicher leeren",
+                roomLabelPrefix: "Zimmer ", 
+                herzName: "Herz", suessName: "Süss", gruenName: "Grün", veganName: "Vegan", extraName: "Extra", kaesetellerName: "Käseteller",
+                Wurst: "Wurst", Käse: "Käse", Gemüse: "Gemüse", Butter: "Butter", Marmelade: "Marmelade", 
+                'Veganer Aufschnitt': "Veganer Aufschnitt", 'Veganer Käse': "Veganer Käse", Margarine: "Margarine",
+                totalItemsLabelPrefix: "Gesamtanzahl auf Liste:", standardRequestText: "Standard",
+                grandTotalAllBreakfastsLabel: "Gesamtzahl aller Frühstücke:",
+                printRoomOrdersTitle: "Druckansicht: Zimmerbestellungen", 
+                printProductionListTitle: "Druckansicht: Produktionsliste", 
+                messageOkButton: "OK", msgNoInputTitle: "Keine Eingabe", msgNoInputText: "Bitte Zimmerbestellungen eingeben.",
+                msgOrdersProcessedInfo: "Bestellungen verarbeitet. Bitte passen Sie Sonderwünsche im nächsten Tab an.",
+                msgNoOrdersToProcess: "Keine Bestellungen", msgNoOrdersToProcessText: "Keine Bestellungen zum Verarbeiten eingegeben.",
+                msgSummaryGeneratedTitle: "Übersicht erstellt", msgSummaryGeneratedText: "Produktionsübersicht wurde erstellt.",
+                msgNoOrdersToSummarize: "Keine Bestellungen", msgNoOrdersToSummarizeText: "Keine angepassten Bestellungen für die Übersicht vorhanden.",
+                msgReconciliationResultTitle: "Vergleichsergebnis", 
+                msgTotalsMatch: "SUMMEN STIMMEN ÜBEREIN: Die Anzahl der Frühstückspositionen auf der Liste ({0}) entspricht der Ibelsa-Gesamtzahl ({1}). Alles in Ordnung!",
+                msgDiscrepancyListHigher: "ABWEICHUNG: Mehr Positionen auf der Liste ({0}) als in Ibelsa ({1}).\n\nAKTION: Bitte Ihre Liste mit Ibelsa abgleichen. Identifizieren Sie Zimmer, die das Frühstücksformular ausgefüllt haben, aber möglicherweise noch nicht in Ibelsa gebucht wurden.", 
+                msgDiscrepancyIbelsaHigher: "ABWEICHUNG: Weniger Positionen auf der Liste ({0}) als in Ibelsa ({1}).\n\nAKTION: Bitte prüfen Sie in Ibelsa, welche Zimmer Frühstück gebucht haben. Überprüfen Sie dann, ob diese Zimmer das Frühstücksformular ausgefüllt haben und ob ihre Bestellungen in diese Liste eingetragen wurden.", 
+                msgInvalidIbelsaTotal: "Ungültige Ibelsa-Gesamtzahl. Bitte geben Sie eine Zahl ein.",
+                msgEnterIbelsaTotalFirst: "Bitte geben Sie zuerst eine gültige Ibelsa-Gesamtzahl im ersten Tab ein.", 
+                msgIgnoredCharsNote: "Ignorierte Zeichen: ",
+                msgDataCleared: "Daten zurückgesetzt", msgDataClearedText: "Alle aktuellen und gespeicherten Daten wurden gelöscht.",
+                msgNothingToPrint: "Nichts zu drucken", msgNothingToPrintText: "Es gibt keine Bestellungen zum Drucken.",
+                msgSessionSaved: "Sitzung gespeichert", msgSessionSavedText: "Die aktuelle Sitzung wurde im Browser gespeichert.",
+                msgSessionLoaded: "Sitzung geladen", msgSessionLoadedText: "Die gespeicherte Sitzung wurde geladen.",
+                msgNoSessionSaved: "Keine Sitzung", msgNoSessionSavedText: "Es wurde keine Sitzung zum Laden gefunden.",
+                msgSavedDataCleared: "Speicher gelöscht", msgSavedDataClearedText: "Alle gespeicherten Sitzungsdaten wurden gelöscht.",
+                msgExported: "Daten exportiert", msgExportedText: "Bestelldaten wurden als JSON-Datei heruntergeladen."
+            },
+            en: { 
+                htmlLang: "en", pageTitle: "Breakfast Counter", langSwitcherText: "Zu Deutsch wechseln",
+                headerTitle: "Breakfast Counter", headerSubtitle: "Enter orders, customize, and create production summary.",
+                tabInput: "1. Orders & Ibelsa", tabCustomize: "2. Customize Orders", tabSummary: "3. Production Summary", tabTimeOverview: "4. Time Overview", 
+                inputSectionTitle: "Orders per Room & Ibelsa Total", processOrdersButton: "Process Orders & Customize",
+                customizationSectionTitle: "Customize Special Requests", customizeButtonLabel: "Customize", commentLabel: "Comment:", marmaladeQtyLabel: "Jam Quantity:",
+                timeOverviewSectionTitle: "Time-Based Order Overview", 
+                timeSlotBefore0700: "Before 07:00", 
+                timeSlotLabel: "Orders at {0}", 
+                showRoomDetailsButton: "Show Room Details", 
+                hideRoomDetailsButton: "Hide Room Details", 
+                noOrdersInTimeSlot: "No orders for this time slot.", 
+                roomTimeLabel: "Time:", roomOrderInputLabel: "Order Codes (e.g. 2H S 0830):", // Updated
+                saveSessionButton: "Save Session", loadSessionButton: "Load Saved Session", clearSavedSessionButton: "Clear Saved Data",
+                exportOrdersButton: "Export Orders (JSON)",
+                printRoomOrdersButton: "Print Room Orders", 
+                generateSummaryButton: "Generate Production Summary",
+                summarySectionTitle: "Production Summary", ibelsaLabel: "Ibelsa Total (Breakfasts):", ibelsaPlaceholder: "Total from Ibelsa", 
+                compareIbelsaButton: "Compare with Ibelsa", printProductionListButton: "Print Production List", 
+                clearAllDataButton: "Reset All Data & Storage",
+                roomLabelPrefix: "Room ", 
+                herzName: "Hearty", suessName: "Sweet", gruenName: "Green (Veg)", veganName: "Vegan", extraName: "Extra", kaesetellerName: "Cheese Plate",
+                Wurst: "Sausage", Käse: "Cheese", Gemüse: "Vegetables", Butter: "Butter", Marmelade: "Jam",
+                'Veganer Aufschnitt': "Vegan Cold Cuts", 'Veganer Käse': "Vegan Cheese", Margarine: "Margarine",
+                totalItemsLabelPrefix: "Total Items on List:", standardRequestText: "Standard",
+                grandTotalAllBreakfastsLabel: "Grand Total of All Breakfasts:",
+                printRoomOrdersTitle: "Print View: Room Orders", 
+                printProductionListTitle: "Print View: Production List", 
+                messageOkButton: "OK", msgNoInputTitle: "No Input", msgNoInputText: "Please enter room orders.",
+                msgOrdersProcessedInfo: "Orders processed. Customize in the next tab.",
+                msgNoOrdersToProcess: "No Orders", msgNoOrdersToProcessText: "No orders to process.",
+                msgSummaryGeneratedTitle: "Summary Generated", msgSummaryGeneratedText: "Summary generated.",
+                msgNoOrdersToSummarize: "No Orders", msgNoOrdersToSummarizeText: "No orders for summary.",
+                msgReconciliationResultTitle: "Comparison Result", 
+                msgTotalsMatch: "TOTALS MATCH: List total ({0}) matches Ibelsa total ({1}). All good!",
+                msgDiscrepancyListHigher: "DISCREPANCY: List total ({0}) is higher than Ibelsa total ({1}).\n\nACTION: Please check your list against Ibelsa. Identify rooms that filled the breakfast form but may not have been booked in Ibelsa yet.", 
+                msgDiscrepancyIbelsaHigher: "DISCREPANCY: List total ({0}) is lower than Ibelsa total ({1}).\n\nACTION: Please check Ibelsa for rooms that have booked breakfast. Then, verify if these rooms have filled out the breakfast form and if their orders have been entered into this list.", 
+                msgInvalidIbelsaTotal: "Invalid Ibelsa total. Please enter a number.",
+                msgEnterIbelsaTotalFirst: "Please enter a valid Ibelsa total in the first tab first.", 
+                msgIgnoredCharsNote: "Ignored characters: ",
+                msgDataCleared: "Data Reset", msgDataClearedText: "All current and saved data has been cleared.",
+                msgNothingToPrint: "Nothing to Print", msgNothingToPrintText: "There are no orders to print.",
+                msgSessionSaved: "Session Saved", msgSessionSavedText: "The current session has been saved in your browser.",
+                msgSessionLoaded: "Session Loaded", msgSessionLoadedText: "The saved session has been loaded.",
+                msgNoSessionSaved: "No Session Found", msgNoSessionSavedText: "No saved session was found to load.",
+                msgSavedDataCleared: "Storage Cleared", msgSavedDataClearedText: "All saved session data has been cleared.",
+                msgExported: "Data Exported", msgExportedText: "Order data has been downloaded as a JSON file."
+            }
+        };
+        
+        const roomNumbers = [ // This array defines the rooms that will be listed
+            ...Array.from({ length: 7 }, (_, i) => 10 + i), ...Array.from({ length: 7 }, (_, i) => 20 + i),
+            ...Array.from({ length: 7 }, (_, i) => 30 + i), ...Array.from({ length: 7 }, (_, i) => 40 + i),
+            50, 51, 52
+        ];
+
+        const DOMElements = { 
+            langSwitcher: document.getElementById('languageSwitcher'), pageTitle: document.getElementById('pageTitle'),
+            headerTitle: document.getElementById('headerTitle'), headerSubtitle: document.getElementById('headerSubtitle'),
+            tabInputBtn: document.getElementById('tabInput'), tabCustomizeBtn: document.getElementById('tabCustomize'), tabSummaryBtn: document.getElementById('tabSummary'), tabTimeOverviewBtn: document.getElementById('tabTimeOverview'), 
+            inputSection: document.getElementById('inputSection'), customizationSection: document.getElementById('customizationSection'), summarySection: document.getElementById('summarySection'), timeOverviewSection: document.getElementById('timeOverviewSection'), 
+            inputSectionTitle: document.getElementById('inputSectionTitle'), roomOrdersContainer: document.getElementById('roomOrdersContainer'),
+            processOrdersButton: document.getElementById('processOrdersButton'),
+            customizationSectionTitle: document.getElementById('customizationSectionTitle'), customizationContainer: document.getElementById('customizationContainer'),
+            printRoomOrdersButton: document.getElementById('printRoomOrdersButton'), 
+            generateSummaryButton: document.getElementById('generateSummaryButton'),
+            summarySectionTitle: document.getElementById('summarySectionTitle'),
+            ibelsaLabel: document.getElementById('ibelsaLabel'), ibelsaTotalInput: document.getElementById('ibelsaTotalInput'),
+            saveSessionButton: document.getElementById('saveSessionButton'), 
+            loadSessionButton: document.getElementById('loadSessionButton'), 
+            clearSavedSessionButton: document.getElementById('clearSavedSessionButton'), 
+            compareIbelsaButton: document.getElementById('compareIbelsaButton'), printProductionListButton: document.getElementById('printProductionListButton'), 
+            exportOrdersButton: document.getElementById('exportOrdersButton'), 
+            summaryOutputContainer: document.getElementById('summaryOutputContainer'),
+            grandTotalSection: document.getElementById('grandTotalSection'), 
+            timeOverviewSectionTitle: document.getElementById('timeOverviewSectionTitle'), 
+            timeOverviewContainer: document.getElementById('timeOverviewContainer'), 
+            clearAllDataButton: document.getElementById('clearAllDataButton'),
+            messageBox: document.getElementById('messageBox'), messagePopupTitle: document.getElementById('messagePopupTitle'),
+            messagePopupText: document.getElementById('messagePopupText'), messageOkButton: document.getElementById('messageOkButton'),
+            messageBoxContent: document.getElementById('messageBoxContent')
+        };
+
+        function S_L(key, ...args) {
+            let str = languageStrings[currentLanguage][key] || key;
+            args.forEach((arg, index) => {
+                str = str.replace(new RegExp(`\\{${index}\\}`, 'g'), arg);
+            });
+            return str;
+        }
+
+        function showMessage(titleKey, textContentOrKey, args = {}) {
+            DOMElements.messagePopupTitle.textContent = S_L(titleKey);
+            let text = S_L(textContentOrKey, ...(args.templateArgs || []));
+            if (args.details) text += ` ${args.details}`;
+            DOMElements.messagePopupText.innerHTML = text.replace(/\n/g, '<br>');
+            DOMElements.messageBox.classList.remove('hidden');
+            DOMElements.messageBoxContent.classList.remove('scale-95', 'opacity-0');
+            DOMElements.messageBoxContent.classList.add('scale-100', 'opacity-100');
+        }
+        DOMElements.messageOkButton.addEventListener('click', () => {
+            DOMElements.messageBoxContent.classList.add('scale-95', 'opacity-0');
+            DOMElements.messageBoxContent.classList.remove('scale-100', 'opacity-100');
+            setTimeout(() => DOMElements.messageBox.classList.add('hidden'), 150); 
+        });
+
+        function switchTab(activeTab) {
+            [DOMElements.inputSection, DOMElements.customizationSection, DOMElements.summarySection, DOMElements.timeOverviewSection].forEach(s => s.classList.add('hidden'));
+            [DOMElements.tabInputBtn, DOMElements.tabCustomizeBtn, DOMElements.tabSummaryBtn, DOMElements.tabTimeOverviewBtn].forEach(b => b.classList.remove('active'));
+            
+            if (activeTab === 'input') { DOMElements.inputSection.classList.remove('hidden'); DOMElements.tabInputBtn.classList.add('active'); }
+            else if (activeTab === 'customize') { DOMElements.customizationSection.classList.remove('hidden'); DOMElements.tabCustomizeBtn.classList.add('active'); }
+            else if (activeTab === 'summary') { DOMElements.summarySection.classList.remove('hidden'); DOMElements.tabSummaryBtn.classList.add('active'); }
+            else if (activeTab === 'timeOverview') { DOMElements.timeOverviewSection.classList.remove('hidden'); DOMElements.tabTimeOverviewBtn.classList.add('active'); renderTimeBasedOverview(); } 
+        }
+
+        function updateUIText() {
+            document.documentElement.lang = S_L('htmlLang');
+            DOMElements.pageTitle.textContent = S_L('pageTitle');
+            DOMElements.langSwitcher.textContent = S_L('langSwitcherText');
+            DOMElements.headerTitle.textContent = S_L('headerTitle');
+            DOMElements.headerSubtitle.textContent = S_L('headerSubtitle');
+            DOMElements.tabInputBtn.textContent = S_L('tabInput');
+            DOMElements.tabCustomizeBtn.textContent = S_L('tabCustomize');
+            DOMElements.tabSummaryBtn.textContent = S_L('tabSummary');
+            DOMElements.tabTimeOverviewBtn.textContent = S_L('tabTimeOverview'); 
+            DOMElements.inputSectionTitle.textContent = S_L('inputSectionTitle');
+            DOMElements.processOrdersButton.textContent = S_L('processOrdersButton');
+            DOMElements.customizationSectionTitle.textContent = S_L('customizationSectionTitle');
+            DOMElements.printRoomOrdersButton.textContent = S_L('printRoomOrdersButton'); 
+            DOMElements.generateSummaryButton.textContent = S_L('generateSummaryButton');
+            DOMElements.summarySectionTitle.textContent = S_L('summarySectionTitle');
+            DOMElements.ibelsaLabel.textContent = S_L('ibelsaLabel');
+            DOMElements.ibelsaTotalInput.placeholder = S_L('ibelsaPlaceholder');
+            DOMElements.timeOverviewSectionTitle.textContent = S_L('timeOverviewSectionTitle'); 
+            DOMElements.saveSessionButton.textContent = S_L('saveSessionButton'); 
+            DOMElements.loadSessionButton.textContent = S_L('loadSessionButton'); 
+            DOMElements.clearSavedSessionButton.textContent = S_L('clearSavedSessionButton'); 
+            DOMElements.compareIbelsaButton.textContent = S_L('compareIbelsaButton');
+            DOMElements.printProductionListButton.textContent = S_L('printProductionListButton'); 
+            DOMElements.exportOrdersButton.textContent = S_L('exportOrdersButton'); 
+            DOMElements.clearAllDataButton.textContent = S_L('clearAllDataButton');
+            DOMElements.messageOkButton.textContent = S_L('messageOkButton');
+            
+            generateRoomInputFields(); 
+            renderCustomizationView(); 
+            renderProductionSummary(); 
+            renderTimeBasedOverview(); 
+        }
+
+        function generateRoomInputFields() {
+            DOMElements.roomOrdersContainer.innerHTML = ''; // Clear previous inputs
+            roomNumbers.forEach((roomNum, index) => {
+                const roomEntryDiv = document.createElement('div');
+                roomEntryDiv.className = 'room-order-entry-row'; // Changed class for single line
+                roomEntryDiv.id = `room-entry-${roomNum}`;
+
+                roomEntryDiv.innerHTML = `
+                    <label class="room-number-label" for="room-${roomNum}-order-text">${S_L('roomLabelPrefix')}${roomNum}:</label>
+                    <input type="text" id="room-${roomNum}-order-text" class="room-order-text-input" 
+                           placeholder="${S_L('roomOrderInputLabel')}">
+                `;
+                DOMElements.roomOrdersContainer.appendChild(roomEntryDiv);
+
+                const orderTextInput = roomEntryDiv.querySelector(`#room-${roomNum}-order-text`);
+                orderTextInput.addEventListener('keydown', (event) => {
+                    if (event.key === 'Enter') {
+                        event.preventDefault(); // Prevent default form submission if any
+                        const nextRoomIndex = index + 1;
+                        if (nextRoomIndex < roomNumbers.length) {
+                            const nextRoomNum = roomNumbers[nextRoomIndex];
+                            const nextInput = document.getElementById(`room-${nextRoomNum}-order-text`);
+                            if (nextInput) {
+                                nextInput.focus();
+                            }
+                        } else {
+                            // Focus on the process button if it's the last room
+                            DOMElements.processOrdersButton.focus();
+                        }
+                    }
+                });
+            });
+        }
+        
+        DOMElements.processOrdersButton.addEventListener('click', () => {
+            const ibelsaStr = DOMElements.ibelsaTotalInput.value.trim();
+            if (ibelsaStr === "" || isNaN(parseInt(ibelsaStr))) {
+                showMessage('msgInputErrorTitle', 'msgEnterIbelsaTotalFirst');
+                DOMElements.ibelsaTotalInput.focus();
+                return;
+            }
+            ibelsaTotalFromInput = parseInt(ibelsaStr);
+
+            allProcessedOrders = [];
+            let orderIdCounter = 0;
+            let hasAnyOrder = false;
+            
+            DOMElements.roomOrdersContainer.querySelectorAll('.room-order-entry-row').forEach(row => {
+                const roomNumLabel = row.querySelector('.room-number-label').textContent;
+                // Extract room number from label like "Zimmer 10:" or "Room 10:"
+                const roomNumMatch = roomNumLabel.match(/\d+/);
+                if (!roomNumMatch) return; // Should not happen if generated correctly
+                const roomNum = roomNumMatch[0];
+
+                const orderTextInput = row.querySelector('.room-order-text-input');
+                const line = orderTextInput.value.trim();
+                if (!line) return;
+
+                let orderPart = line;
+                let roomTime = "";
+
+                // Try to parse time (HHMM format) from the orderPart
+                // Regex looks for 4 digits, optionally preceded/followed by spaces, ensuring it's a word boundary or start/end of string
+                const timeMatch = orderPart.match(/(?:^|\s)(\d{4})(?:\s|$)/); 
+                if (timeMatch) {
+                    const potentialTime = timeMatch[1];
+                    const hours = potentialTime.substring(0,2);
+                    const minutes = potentialTime.substring(2,4);
+                    if (parseInt(hours) >= 0 && parseInt(hours) < 24 && parseInt(minutes) >= 0 && parseInt(minutes) < 60) {
+                        roomTime = `${hours}:${minutes}`;
+                        // Remove the matched time part from orderPart for further processing
+                        // This needs to be careful not to remove parts of breakfast codes if time is embedded
+                        orderPart = orderPart.replace(timeMatch[0].trim(), '').trim(); 
+                    }
+                }
+                
+                const breakfastCodesRaw = orderPart.toUpperCase().replace(/\s+/g, '');
+                let tempBfText = breakfastCodesRaw;
+                const bfRegex = /(\d*)([HSGVEK])/g;
+                let bfMatch;
+
+                while ((bfMatch = bfRegex.exec(tempBfText)) !== null) {
+                    const quantity = bfMatch[1] ? parseInt(bfMatch[1]) : 1;
+                    const type = bfMatch[2];
+
+                    if (breakfastDefinitions[type] && quantity > 0) {
+                        hasAnyOrder = true;
+                        for (let i = 0; i < quantity; i++) {
+                            const def = breakfastDefinitions[type];
+                            const newOrder = {
+                                id: `order-${orderIdCounter++}`, room: roomNum, type: type, 
+                                sessionTime: roomTime, 
+                                components: {}, 
+                                marmaladeQuantity: def.hasMarmaladeQty ? (def.defaultMarmaladeQty || 0) : 0, 
+                                comment: "", isCustomizationVisible: false
+                            };
+                            (def.components || []).forEach(comp => { newOrder.components[comp] = true; });
+                            allProcessedOrders.push(newOrder);
+                        }
+                    }
+                }
+            });
+
+
+            if (!hasAnyOrder) { showMessage('msgNoOrdersToProcess', 'msgNoOrdersToProcessText'); return; }
+            
+            const listTotal = allProcessedOrders.length;
+            let titleKey = 'msgReconciliationResultTitle'; 
+            let mainMsgKey;
+            if (listTotal > ibelsaTotalFromInput) mainMsgKey = 'msgDiscrepancyListHigher';
+            else if (listTotal < ibelsaTotalFromInput) mainMsgKey = 'msgDiscrepancyIbelsaHigher';
+            else mainMsgKey = 'msgTotalsMatch';
+            
+            showMessage(titleKey, mainMsgKey, { templateArgs: [listTotal, ibelsaTotalFromInput] });
+            
+            renderCustomizationView();
+            renderTimeBasedOverview(); 
+            switchTab('customize');
+        });
+
+        function isOrderStandard(order) {
+            const def = breakfastDefinitions[order.type];
+            if (!def) return true; 
+            if (def.components && def.components.length > 0 && !def.components.every(comp => order.components[comp] === true)) return false;
+            if (def.hasMarmaladeQty && order.marmaladeQuantity !== (def.defaultMarmaladeQty || 0)) return false;
+            if (order.comment && order.comment.trim() !== "") return false;
+            return true;
+        }
+
+        function getOrderComponentSummary(order) {
+            if (isOrderStandard(order)) return S_L('standardRequestText');
+            const def = breakfastDefinitions[order.type];
+            let summaryParts = [];
+            if (def.components && def.components.length > 0) {
+                const excludedComponents = def.components.filter(compName => !order.components[compName]);
+                if (excludedComponents.length > 0) summaryParts.push(...excludedComponents.map(comp => `Ohne ${S_L(comp) || comp}`));
+            }
+            if (def.hasMarmaladeQty && order.marmaladeQuantity !== (def.defaultMarmaladeQty || 0)) {
+                 summaryParts.push(`${S_L('Marmelade')}: ${order.marmaladeQuantity}x`);
+            }
+            if (order.comment && order.comment.trim() !== "") summaryParts.push(`${S_L('commentLabel')} ${order.comment.trim()}`);
+            return summaryParts.join('; ');
+        }
+
+        function renderCustomizationView() {
+            DOMElements.customizationContainer.innerHTML = '';
+            if (allProcessedOrders.length === 0 && DOMElements.tabCustomizeBtn.classList.contains('active')) {
+                DOMElements.customizationContainer.innerHTML = `<p class="text-slate-500 p-4">${S_L('msgNoOrdersToProcessText')}</p>`;
+                return;
+            }
+
+            allProcessedOrders.forEach(order => {
+                const def = breakfastDefinitions[order.type];
+                if (!def) return;
+
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'customization-item';
+                itemDiv.id = `cust-${order.id}`;
+
+                const header = document.createElement('div');
+                header.className = 'customization-item-header';
+                header.innerHTML = `
+                    <span class="customization-item-info">${S_L('roomLabelPrefix')}${order.room} - ${S_L(def.nameKey)} (${order.type}) <span class="customization-item-time">(${order.sessionTime || 'N/A'})</span></span>
+                    <span class="customization-item-status">${getOrderComponentSummary(order)}</span>
+                    <button class="customize-btn" data-order-id="${order.id}">${S_L('customizeButtonLabel')}</button>
+                `;
+
+                const componentsBody = document.createElement('div');
+                componentsBody.className = 'customization-item-body hidden';
+                let componentsHTML = '<div class="space-y-4">';
+                if (def.components && def.components.length > 0) {
+                    componentsHTML += '<div class="grid grid-cols-2 gap-x-4 gap-y-2">';
+                    def.components.forEach(compName => {
+                        const isChecked = order.components[compName];
+                        componentsHTML += `
+                            <label class="component-checkbox-label">
+                                <input type="checkbox" class="component-checkbox" data-order-id="${order.id}" data-component="${compName}" ${isChecked ? 'checked' : ''}>
+                                ${S_L(compName) || compName}
+                            </label>
+                        `;
+                    });
+                    componentsHTML += '</div>';
+                }
+
+                if (def.hasMarmaladeQty) {
+                    componentsHTML += `<div class="mt-3 pt-3 border-t flex items-center space-x-3">
+                                        <label for="marmalade-qty-${order.id}" class="text-sm font-medium text-slate-700">${S_L('marmaladeQtyLabel')}</label>
+                                        <select id="marmalade-qty-${order.id}" class="marmalade-qty-select form-select block w-auto rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" data-order-id="${order.id}">`;
+                    for (let i = 0; i <= 5; i++) {
+                        componentsHTML += `<option value="${i}" ${order.marmaladeQuantity === i ? 'selected' : ''}>${i}</option>`;
+                    }
+                    componentsHTML += `</select></div>`;
+                }
+                
+                componentsHTML += `
+                    <div class="mt-3 pt-3 border-t">
+                        <label for="comment-${order.id}" class="text-sm font-medium text-slate-700">${S_L('commentLabel')}</label>
+                        <input type="text" id="comment-${order.id}" class="comment-input form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" value="${order.comment || ''}" data-order-id="${order.id}" placeholder="...">
+                    </div>
+                `;
+                componentsHTML += '</div>';
+                componentsBody.innerHTML = componentsHTML;
+                
+                itemDiv.appendChild(header);
+                itemDiv.appendChild(componentsBody);
+                DOMElements.customizationContainer.appendChild(itemDiv);
+
+                const toggleButton = header.querySelector('.customize-btn');
+                const statusDisplay = header.querySelector('.customization-item-status');
+
+                function toggleCustomization() {
+                    order.isCustomizationVisible = !order.isCustomizationVisible;
+                    componentsBody.classList.toggle('hidden', !order.isCustomizationVisible);
+                    statusDisplay.textContent = getOrderComponentSummary(order);
+                }
+                toggleButton.addEventListener('click', (e) => { e.stopPropagation(); toggleCustomization(); });
+                header.addEventListener('click', (e) => { if (e.target !== toggleButton && !toggleButton.contains(e.target) ) toggleCustomization(); });
+
+                componentsBody.querySelectorAll('.component-checkbox').forEach(checkbox => {
+                    checkbox.addEventListener('change', (event) => {
+                        order.components[event.target.dataset.component] = event.target.checked;
+                        statusDisplay.textContent = getOrderComponentSummary(order);
+                        renderTimeBasedOverview(); 
+                    });
+                });
+                const marmaladeQtySelect = componentsBody.querySelector(`#marmalade-qty-${order.id}`);
+                if (marmaladeQtySelect) {
+                    marmaladeQtySelect.addEventListener('change', (event) => {
+                        order.marmaladeQuantity = parseInt(event.target.value);
+                        statusDisplay.textContent = getOrderComponentSummary(order);
+                        renderTimeBasedOverview(); 
+                    });
+                }
+                const commentInput = componentsBody.querySelector(`#comment-${order.id}`);
+                if (commentInput) {
+                    commentInput.addEventListener('input', (event) => {
+                        order.comment = event.target.value;
+                        statusDisplay.textContent = getOrderComponentSummary(order);
+                        renderTimeBasedOverview(); 
+                    });
+                }
+            });
+        }
+        
+        DOMElements.generateSummaryButton.addEventListener('click', () => {
+            if (allProcessedOrders.length === 0) { showMessage('msgNoOrdersToSummarize', 'msgNoOrdersToSummarizeText'); return; }
+            renderProductionSummary();
+            showMessage('msgSummaryGeneratedTitle', 'msgSummaryGeneratedText');
+            switchTab('summary');
+        });
+        
+        function renderProductionSummary() {
+            DOMElements.summaryOutputContainer.innerHTML = '';
+            DOMElements.grandTotalSection.innerHTML = ''; 
+
+            if (allProcessedOrders.length === 0 && DOMElements.tabSummaryBtn.classList.contains('active')) {
+                 DOMElements.summaryOutputContainer.innerHTML = `<p class="text-slate-500 p-4">${S_L('msgNoOrdersToSummarizeText')}</p>`; return;
+            }
+
+            const summaryData = {}; 
+            let grandTotalBreakfasts = 0;
+
+            allProcessedOrders.forEach(order => {
+                if (!summaryData[order.type]) summaryData[order.type] = {};
+                const requestKey = getOrderComponentSummary(order); 
+                summaryData[order.type][requestKey] = (summaryData[order.type][requestKey] || 0) + 1;
+            });
+
+            const sortedTypes = Object.keys(summaryData).sort((a, b) => 'HSGVEK'.indexOf(a) - 'HSGVEK'.indexOf(b));
+            sortedTypes.forEach(type => {
+                const requestsForType = summaryData[type];
+                const totalForType = Object.values(requestsForType).reduce((sum, count) => sum + count, 0);
+                if (totalForType === 0) return;
+                grandTotalBreakfasts += totalForType;
+
+                const card = document.createElement('div');
+                card.className = 'summary-card';
+                let cardHTML = `
+                    <div class="summary-header">
+                        <h2>${S_L(breakfastDefinitions[type].nameKey)} (${type})</h2>
+                        <p class="total">Total: ${totalForType}</p>
+                    </div><ul class="summary-group space-y-2">`;
+                Object.keys(requestsForType).sort((a, b) => (a === S_L('standardRequestText') ? -1 : b === S_L('standardRequestText') ? 1 : a.localeCompare(b)))
+                    .forEach(requestKey => {
+                        const detailsClass = requestKey === S_L('standardRequestText') ? 'standard' : 'details';
+                        let displayRequestKey = requestKey.replace(/; /g, '<br/>&nbsp;&nbsp;&nbsp;&nbsp;&#8227;&nbsp;'); 
+                        
+                        cardHTML += `<li><span class="count">${requestsForType[requestKey]}x</span> <span class="${detailsClass}">${displayRequestKey}</span></li>`;
+                    });
+                cardHTML += `</ul>`;
+                card.innerHTML = cardHTML;
+                DOMElements.summaryOutputContainer.appendChild(card);
+            });
+
+            if (grandTotalBreakfasts > 0) {
+                const grandTotalDiv = document.createElement('div');
+                grandTotalDiv.className = 'grand-total-summary';
+                grandTotalDiv.innerHTML = `<p>${S_L('grandTotalAllBreakfastsLabel')} <span>${grandTotalBreakfasts}</span></p>`;
+                DOMElements.grandTotalSection.appendChild(grandTotalDiv);
+            }
+        }
+        
+        function getTimeSlot(timeStr) {
+            if (!timeStr) return 'N/A'; 
+            const [hours, minutes] = timeStr.split(':').map(Number);
+
+            if (hours < 7) return "Before 07:00";
+            if (hours > 9 || (hours === 9 && minutes > 30)) return 'After 09:30'; 
+
+            const totalMinutes = hours * 60 + minutes;
+            const slotStartMinutes = Math.floor(totalMinutes / 15) * 15;
+            
+            const slotHours = String(Math.floor(slotStartMinutes / 60)).padStart(2, '0');
+            const slotMins = String(slotStartMinutes % 60).padStart(2, '0');
+            
+            return `${slotHours}:${slotMins}`;
+        }
+
+        function renderTimeBasedOverview() {
+            DOMElements.timeOverviewContainer.innerHTML = '';
+            if (allProcessedOrders.length === 0 && DOMElements.tabTimeOverviewBtn.classList.contains('active')) {
+                DOMElements.timeOverviewContainer.innerHTML = `<p class="text-slate-500 p-4">${S_L('msgNoOrdersToProcessText')}</p>`;
+                return;
+            }
+
+            const timeSlotsDefinition = ["Before 07:00"];
+            for (let h = 7; h <= 9; h++) {
+                for (let m = 0; m < 60; m += 15) {
+                    if (h === 9 && m > 30) break;
+                    timeSlotsDefinition.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+                }
+            }
+            timeSlotsDefinition.push('After 09:30'); 
+            timeSlotsDefinition.push('N/A'); 
+
+            const ordersByTimeSlot = {};
+            timeSlotsDefinition.forEach(slot => ordersByTimeSlot[slot] = []);
+
+            allProcessedOrders.forEach(order => {
+                const slotKey = getTimeSlot(order.sessionTime);
+                if (ordersByTimeSlot[slotKey]) {
+                    ordersByTimeSlot[slotKey].push(order);
+                } else { 
+                    if (!ordersByTimeSlot['N/A']) ordersByTimeSlot['N/A'] = [];
+                     ordersByTimeSlot['N/A'].push(order);
+                }
+            });
+            
+            const displayOrder = timeSlotsDefinition; 
+
+            displayOrder.forEach(slotKey => {
+                const ordersInSlot = ordersByTimeSlot[slotKey];
+                if (!ordersInSlot || ordersInSlot.length === 0) return;
+
+                const slotCard = document.createElement('div');
+                slotCard.className = 'time-slot-card';
+
+                const headerClass = slotKey === "Before 07:00" ? "time-slot-header before-0700" : "time-slot-header";
+                let headerText = slotKey === "Before 07:00" ? S_L('timeSlotBefore0700') : 
+                                 slotKey === "After 09:30" ? (currentLanguage === 'de' ? "Nach 09:30" : "After 09:30") : 
+                                 slotKey === "N/A" ? (currentLanguage === 'de' ? "Ohne Zeitangabe" : "No Time Specified") : S_L('timeSlotLabel', slotKey);
+                
+
+                let slotHTML = `<div class="${headerClass}">${headerText}</div>`;
+                const typeSummary = {};
+                ordersInSlot.forEach(order => {
+                    typeSummary[order.type] = (typeSummary[order.type] || 0) + 1;
+                });
+                
+                slotHTML += `<div class="time-slot-summary">`;
+                Object.keys(typeSummary).sort().forEach(type => {
+                    slotHTML += `<span>${S_L(breakfastDefinitions[type].nameKey)} (${type}): ${typeSummary[type]}</span>`;
+                });
+                slotHTML += `</div>`;
+
+                const detailsId = `details-${slotKey.replace(/[^a-zA-Z0-9]/g, '')}`;
+                slotHTML += `<button class="time-slot-details-toggle" data-target="${detailsId}">${S_L('showRoomDetailsButton')}</button>`;
+                slotHTML += `<div id="${detailsId}" class="time-slot-room-list hidden"><ul>`;
+
+                ordersInSlot.sort((a,b) => (a.sessionTime || "23:59").localeCompare(b.sessionTime || "23:59") || a.room.localeCompare(b.room) ).forEach(order => {
+                    slotHTML += `<li>
+                                    <span class="room-info">${S_L('roomLabelPrefix')}${order.room} (${order.sessionTime || 'N/A'}) - ${S_L(breakfastDefinitions[order.type].nameKey)} (${order.type}):</span>
+                                    <span class="order-details">${getOrderComponentSummary(order)}</span>
+                                 </li>`;
+                });
+                slotHTML += `</ul></div>`;
+                slotCard.innerHTML = slotHTML;
+                DOMElements.timeOverviewContainer.appendChild(slotCard);
+
+                slotCard.querySelector('.time-slot-details-toggle').addEventListener('click', function() {
+                    const targetId = this.dataset.target;
+                    const detailsDiv = document.getElementById(targetId);
+                    const isHidden = detailsDiv.classList.toggle('hidden');
+                    this.textContent = isHidden ? S_L('showRoomDetailsButton') : S_L('hideRoomDetailsButton');
+                });
+            });
+             if (DOMElements.timeOverviewContainer.innerHTML === '') {
+                DOMElements.timeOverviewContainer.innerHTML = `<p class="text-slate-500 p-4">${S_L('noOrdersInTimeSlot')}</p>`;
+            }
+        }
+
+
+        DOMElements.compareIbelsaButton.addEventListener('click', () => {
+            if (ibelsaTotalFromInput === null || isNaN(ibelsaTotalFromInput)) { 
+                showMessage('msgInputErrorTitle', 'msgEnterIbelsaTotalFirst');
+                switchTab('input'); 
+                DOMElements.ibelsaTotalInput.focus();
+                return;
+            }
+            const listTotal = allProcessedOrders.length;
+            let titleKey = 'msgReconciliationResultTitle'; 
+            let mainMsgKey;
+
+            if (listTotal > ibelsaTotalFromInput) mainMsgKey = 'msgDiscrepancyListHigher';
+            else if (listTotal < ibelsaTotalFromInput) mainMsgKey = 'msgDiscrepancyIbelsaHigher';
+            else mainMsgKey = 'msgTotalsMatch';
+            
+            showMessage(titleKey, mainMsgKey, { templateArgs: [listTotal, ibelsaTotalFromInput] });
+        });
+
+        DOMElements.clearAllDataButton.addEventListener('click', () => {
+            allProcessedOrders = [];
+            ibelsaTotalFromInput = null;
+            DOMElements.roomOrdersContainer.querySelectorAll('.room-order-text-input').forEach(input => input.value = ''); // Clear individual text inputs
+            DOMElements.ibelsaTotalInput.value = '';
+            localStorage.removeItem(LOCAL_STORAGE_KEY); 
+            renderCustomizationView();
+            renderProductionSummary();
+            renderTimeBasedOverview(); 
+            switchTab('input');
+            showMessage('msgDataCleared', 'msgDataClearedText');
+        });
+
+        DOMElements.saveSessionButton.addEventListener('click', () => {
+            const roomInputsData = [];
+            DOMElements.roomOrdersContainer.querySelectorAll('.room-order-entry-row').forEach(row => {
+                 const roomNumLabel = row.querySelector('.room-number-label').textContent;
+                 const roomNumMatch = roomNumLabel.match(/\d+/);
+                 if (roomNumMatch) {
+                    const roomNum = roomNumMatch[0];
+                    const orderTextInput = row.querySelector(`#room-${roomNum}-order-text`);
+                    roomInputsData.push({
+                        roomNumber: roomNum,
+                        orderTextValue: orderTextInput.value
+                    });
+                 }
+            });
+
+            const sessionData = {
+                ibelsaTotal: DOMElements.ibelsaTotalInput.value,
+                roomTextInputs: roomInputsData, // Save array of room text inputs
+                processedOrders: allProcessedOrders, 
+                lang: currentLanguage
+            };
+            try {
+                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(sessionData));
+                showMessage('msgSessionSaved', 'msgSessionSavedText');
+            } catch (e) {
+                console.error("Error saving session:", e);
+                showMessage('msgInputErrorTitle', S_L('msgInputErrorTitle')); 
+            }
+        });
+
+        DOMElements.loadSessionButton.addEventListener('click', () => {
+            try {
+                const savedDataJSON = localStorage.getItem(LOCAL_STORAGE_KEY);
+                if (savedDataJSON) {
+                    const savedData = JSON.parse(savedDataJSON);
+                    DOMElements.ibelsaTotalInput.value = savedData.ibelsaTotal || '';
+                    ibelsaTotalFromInput = savedData.ibelsaTotal ? parseInt(savedData.ibelsaTotal) : null;
+                    
+                    if (savedData.roomTextInputs) { 
+                        savedData.roomTextInputs.forEach(roomData => {
+                            const orderTextInput = document.getElementById(`room-${roomData.roomNumber}-order-text`);
+                            if (orderTextInput) {
+                                orderTextInput.value = roomData.orderTextValue || '';
+                            }
+                        });
+                    }
+
+                    allProcessedOrders = savedData.processedOrders || [];
+                    currentLanguage = savedData.lang || 'de';
+                    updateUIText(); // This will call generateRoomInputFields
+                    renderCustomizationView(); 
+                    renderProductionSummary(); 
+                    renderTimeBasedOverview();
+                    
+                    showMessage('msgSessionLoaded', 'msgSessionLoadedText');
+                    if (allProcessedOrders.length > 0) {
+                        switchTab('customize'); 
+                    } else {
+                        switchTab('input');
+                    }
+                } else {
+                    showMessage('msgNoSessionSaved', 'msgNoSessionSavedText');
+                }
+            } catch (e) {
+                console.error("Error loading session:", e);
+                showMessage('msgInputErrorTitle', 'Fehler beim Laden der Sitzung.');
+            }
+        });
+        
+        DOMElements.clearSavedSessionButton.addEventListener('click', () => {
+            localStorage.removeItem(LOCAL_STORAGE_KEY);
+            showMessage('msgSavedDataCleared', 'msgSavedDataClearedText');
+        });
+
+        DOMElements.exportOrdersButton.addEventListener('click', () => {
+            if (allProcessedOrders.length === 0) {
+                showMessage('msgNothingToPrint', 'msgNothingToPrintText');
+                return;
+            }
+            const dataStr = JSON.stringify(allProcessedOrders, null, 2); 
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = `breakfast_orders_${new Date().toISOString().slice(0,10)}.json`;
+            
+            let linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+            showMessage('msgExported', 'msgExportedText');
+        });
+
+
+        // --- PRINT FUNCTIONALITY ---
+        function generatePrintContent(title, bodyContent) {
+            return `
+                <!DOCTYPE html>
+                <html lang="${S_L('htmlLang')}">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>${title}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; }
+                        h1 { text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
+                        .print-section { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px dashed #ccc; }
+                        .print-section:last-child { border-bottom: none; }
+                        .print-section h2 { font-size: 1.2em; margin-top: 0; margin-bottom: 8px; color: #333; }
+                        .print-section .time { font-size: 0.9em; color: #555; margin-left: 10px;}
+                        .print-section p { margin: 2px 0; }
+                        .print-section ul { list-style-type: none; padding-left: 0; }
+                        .print-section ul li { margin-bottom: 3px; }
+                        .print-summary-card { margin-bottom: 20px; border: 1px solid #ddd; padding: 15px; border-radius: 5px; }
+                        .print-summary-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 10px;}
+                        .print-summary-header h2 { font-size: 1.3em; margin:0; }
+                        .print-summary-header .total { font-size: 1.1em; font-weight: bold; }
+                        .print-summary-group li { margin-bottom: 5px; }
+                        .print-summary-group .count { font-weight: bold; min-width: 30px; display: inline-block;}
+                        .print-summary-group .standard { color: green; }
+                        .print-grand-total { margin-top: 30px; padding-top:15px; border-top: 2px solid #333; text-align: center; font-size: 1.4em; font-weight: bold;}
+                        @media print {
+                            body { margin: 0.5in; }
+                            .no-print { display: none; }
+                            h1 { font-size: 1.5rem; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h1>${title}</h1>
+                    ${bodyContent}
+                    <script> setTimeout(() => window.print(), 500); <\/script> 
+                </body>
+                </html>
+            `;
+        }
+
+        DOMElements.printRoomOrdersButton.addEventListener('click', () => {
+            if (allProcessedOrders.length === 0) {
+                showMessage('msgNothingToPrint', 'msgNothingToPrintText');
+                return;
+            }
+            let printHTML = '';
+            allProcessedOrders.forEach(order => {
+                const def = breakfastDefinitions[order.type];
+                printHTML += `<div class="print-section">`;
+                printHTML += `<h2>${S_L('roomLabelPrefix')}${order.room} - ${S_L(def.nameKey)} (${order.type}) <span class="time">(${order.sessionTime || 'N/A'})</span></h2>`;
+                printHTML += `<ul>`;
+                if (isOrderStandard(order)) {
+                    printHTML += `<li>${S_L('standardRequestText')}</li>`;
+                } else {
+                    if (def.components && def.components.length > 0) {
+                        def.components.forEach(comp => {
+                            if (order.components[comp]) {
+                                printHTML += `<li>- ${S_L(comp) || comp}</li>`;
+                            } else {
+                                printHTML += `<li>- Ohne ${S_L(comp) || comp}</li>`;
+                            }
+                        });
+                    }
+                    if (def.hasMarmaladeQty && order.marmaladeQuantity !== (def.defaultMarmaladeQty || 0)) {
+                        printHTML += `<li>- ${S_L('Marmelade')}: ${order.marmaladeQuantity}x</li>`;
+                    } else if (def.hasMarmaladeQty && order.marmaladeQuantity > 0 && !isOrderStandard(order)) { 
+                         printHTML += `<li>- ${S_L('Marmelade')}: ${order.marmaladeQuantity}x</li>`;
+                    }
+
+                    if (order.comment && order.comment.trim() !== "") {
+                        printHTML += `<li>- ${S_L('commentLabel')} ${order.comment.trim()}</li>`;
+                    }
+                }
+                printHTML += `</ul></div>`;
+            });
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(generatePrintContent(S_L('printRoomOrdersTitle'), printHTML));
+            printWindow.document.close();
+        });
+
+        DOMElements.printProductionListButton.addEventListener('click', () => {
+            if (allProcessedOrders.length === 0) {
+                showMessage('msgNothingToPrint', 'msgNothingToPrintText');
+                return;
+            }
+            let printHTML = '';
+            const summaryData = {};
+            let grandTotalBreakfasts = 0;
+
+            allProcessedOrders.forEach(order => {
+                if (!summaryData[order.type]) summaryData[order.type] = {};
+                const requestKey = getOrderComponentSummary(order);
+                summaryData[order.type][requestKey] = (summaryData[order.type][requestKey] || 0) + 1;
+            });
+
+            const sortedTypes = Object.keys(summaryData).sort((a, b) => 'HSGVEK'.indexOf(a) - 'HSGVEK'.indexOf(b));
+            sortedTypes.forEach(type => {
+                const requestsForType = summaryData[type];
+                const totalForType = Object.values(requestsForType).reduce((sum, count) => sum + count, 0);
+                if (totalForType === 0) return;
+                grandTotalBreakfasts += totalForType;
+
+                printHTML += `<div class="print-summary-card">`;
+                printHTML += `<div class="print-summary-header"><h2>${S_L(breakfastDefinitions[type].nameKey)} (${type})</h2><span class="total">Total: ${totalForType}</span></div>`;
+                printHTML += `<ul class="print-summary-group">`;
+                Object.keys(requestsForType).sort((a, b) => (a === S_L('standardRequestText') ? -1 : b === S_L('standardRequestText') ? 1 : a.localeCompare(b)))
+                    .forEach(requestKey => {
+                        const detailsClass = requestKey === S_L('standardRequestText') ? 'standard' : '';
+                         let displayRequestKey = requestKey.replace(/; /g, '<br/>&nbsp;&nbsp;&nbsp;&nbsp;&#8227;&nbsp;'); 
+                        printHTML += `<li><span class="count">${requestsForType[requestKey]}x</span> <span class="${detailsClass}">${displayRequestKey}</span></li>`;
+                    });
+                printHTML += `</ul></div>`;
+            });
+            if(grandTotalBreakfasts > 0){
+                printHTML += `<div class="print-grand-total">${S_L('grandTotalAllBreakfastsLabel')} ${grandTotalBreakfasts}</div>`;
+            }
+
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(generatePrintContent(S_L('printProductionListTitle'), printHTML));
+            printWindow.document.close();
+        });
+
+
+        // --- Event Listeners ---
+        DOMElements.tabInputBtn.addEventListener('click', () => switchTab('input'));
+        DOMElements.tabCustomizeBtn.addEventListener('click', () => {
+            if (allProcessedOrders.length === 0) DOMElements.processOrdersButton.click(); 
+            else if (ibelsaTotalFromInput !== null) switchTab('customize'); 
+        });
+        DOMElements.tabSummaryBtn.addEventListener('click', () => {
+             if (allProcessedOrders.length === 0 && !DOMElements.tabCustomizeBtn.classList.contains('active')) {
+                DOMElements.processOrdersButton.click();
+             }
+             if (allProcessedOrders.length > 0 || DOMElements.tabCustomizeBtn.classList.contains('active')) {
+                renderProductionSummary();
+             }
+             if (ibelsaTotalFromInput !== null) switchTab('summary'); 
+        });
+         DOMElements.tabTimeOverviewBtn.addEventListener('click', () => { 
+            if (allProcessedOrders.length === 0 && !DOMElements.tabCustomizeBtn.classList.contains('active')) {
+                 DOMElements.processOrdersButton.click(); 
+            }
+            if (ibelsaTotalFromInput !== null) { 
+                renderTimeBasedOverview(); 
+                switchTab('timeOverview');
+            } else if (allProcessedOrders.length > 0) {
+                 renderTimeBasedOverview();
+                 switchTab('timeOverview');
+            }
+        });
+        DOMElements.langSwitcher.addEventListener('click', () => {
+            currentLanguage = (currentLanguage === 'de') ? 'en' : 'de';
+            updateUIText();
+        });
+
+        window.onload = () => { 
+            updateUIText(); 
+            switchTab('input'); 
+        };
+    </script>
+</body>
+</html>
