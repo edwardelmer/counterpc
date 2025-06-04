@@ -59,7 +59,7 @@
             padding-bottom: 0.75rem;
         }
         
-        .room-order-entry-row { /* Reverted from .room-order-entry for individual row styling */
+        .room-order-entry-row { 
             display: flex; 
             align-items: center; 
             gap: 0.75rem;
@@ -70,7 +70,7 @@
             box-shadow: 0 1px 3px 0 rgba(0,0,0,0.07), 0 1px 2px -1px rgba(0,0,0,0.05);
             transition: all 0.25s ease-in-out;
         }
-        .room-order-entry-row:hover { /* Reverted hover style */
+        .room-order-entry-row:hover { 
             background-color: #eff6ff; 
             box-shadow: 0 6px 12px -1px rgba(0,0,0,0.08); 
             transform: translateY(-2px) scale(1.01); 
@@ -78,16 +78,16 @@
         .room-number-label { 
             font-weight: 700; color: #111827; 
             font-size: 1.125rem; 
-            min-width: 5.5rem; /* Ensure consistent width */
+            min-width: 5.5rem; 
         }
-        .room-order-text-input { /* For the single text input per room */
+        .room-order-text-input { 
             flex-grow: 1;
             padding: 0.75rem 1rem; 
             border: 1px solid #cbd5e1; 
             border-radius: 0.375rem; 
             box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); 
             font-size: 0.9rem;
-            font-family: 'Courier New', Courier, monospace;
+            font-family: 'Courier New', Courier, monospace; 
         }
         .room-order-text-input:focus { 
             border-color: #2563eb; 
@@ -317,14 +317,14 @@
                 </div>
             </div>
         </div>
-        <footer class="mt-12 text-center"><p class="text-xs text-slate-500">&copy; Edward Elmer 2025</p></footer>
+        <footer class="mt-12 text-center"><p class="text-xs text-slate-500">&copy; Edward Elmer</p></footer>
     </div>
 
     <script>
         let currentLanguage = 'de';
         let allProcessedOrders = []; 
         let ibelsaTotalFromInput = null;
-        const LOCAL_STORAGE_KEY = 'breakfastCounterSessionData_v7_roomTextInputs'; // New key for this input format
+        const LOCAL_STORAGE_KEY = 'breakfastCounterSessionData_v9_roomTextEnterNav'; 
 
 
         const breakfastDefinitions = {
@@ -349,7 +349,7 @@
                 showRoomDetailsButton: "Raumdetails anzeigen", 
                 hideRoomDetailsButton: "Raumdetails ausblenden", 
                 noOrdersInTimeSlot: "Keine Bestellungen für dieses Zeitfenster.", 
-                roomTimeLabel: "Zeit:", roomOrderInputLabel: "Bestellcodes (z.B. 2H S 0830):", // Updated for single text input
+                roomTimeLabel: "Zeit:", roomOrderInputLabel: "Bestellcodes (z.B. 2H S 0830):", 
                 saveSessionButton: "Sitzung speichern", loadSessionButton: "Gespeicherte Sitzung laden", clearSavedSessionButton: "Gespeicherte Daten löschen",
                 exportOrdersButton: "Bestellungen exportieren (JSON)",
                 printRoomOrdersButton: "Zimmerbestellungen drucken", 
@@ -397,7 +397,7 @@
                 showRoomDetailsButton: "Show Room Details", 
                 hideRoomDetailsButton: "Hide Room Details", 
                 noOrdersInTimeSlot: "No orders for this time slot.", 
-                roomTimeLabel: "Time:", roomOrderInputLabel: "Order Codes (e.g. 2H S 0830):", // Updated
+                roomTimeLabel: "Time:", roomOrderInputLabel: "Order Codes (e.g. 2H S 0830):", 
                 saveSessionButton: "Save Session", loadSessionButton: "Load Saved Session", clearSavedSessionButton: "Clear Saved Data",
                 exportOrdersButton: "Export Orders (JSON)",
                 printRoomOrdersButton: "Print Room Orders", 
@@ -435,7 +435,7 @@
             }
         };
         
-        const roomNumbers = [ // This array defines the rooms that will be listed
+        const roomNumbers = [ 
             ...Array.from({ length: 7 }, (_, i) => 10 + i), ...Array.from({ length: 7 }, (_, i) => 20 + i),
             ...Array.from({ length: 7 }, (_, i) => 30 + i), ...Array.from({ length: 7 }, (_, i) => 40 + i),
             50, 51, 52
@@ -536,10 +536,12 @@
         }
 
         function generateRoomInputFields() {
-            DOMElements.roomOrdersContainer.innerHTML = ''; // Clear previous inputs
-            roomNumbers.forEach((roomNum, index) => {
+            DOMElements.roomOrdersContainer.innerHTML = ''; 
+            const allInputs = []; // To keep track of inputs for arrow key navigation
+
+            roomNumbers.forEach((roomNum) => {
                 const roomEntryDiv = document.createElement('div');
-                roomEntryDiv.className = 'room-order-entry-row'; // Changed class for single line
+                roomEntryDiv.className = 'room-order-entry-row'; 
                 roomEntryDiv.id = `room-entry-${roomNum}`;
 
                 roomEntryDiv.innerHTML = `
@@ -548,21 +550,34 @@
                            placeholder="${S_L('roomOrderInputLabel')}">
                 `;
                 DOMElements.roomOrdersContainer.appendChild(roomEntryDiv);
+                allInputs.push(roomEntryDiv.querySelector(`#room-${roomNum}-order-text`));
+            });
 
-                const orderTextInput = roomEntryDiv.querySelector(`#room-${roomNum}-order-text`);
-                orderTextInput.addEventListener('keydown', (event) => {
-                    if (event.key === 'Enter') {
-                        event.preventDefault(); // Prevent default form submission if any
-                        const nextRoomIndex = index + 1;
-                        if (nextRoomIndex < roomNumbers.length) {
-                            const nextRoomNum = roomNumbers[nextRoomIndex];
-                            const nextInput = document.getElementById(`room-${nextRoomNum}-order-text`);
-                            if (nextInput) {
-                                nextInput.focus();
-                            }
+            // Add arrow key and Enter navigation to all text inputs
+            allInputs.forEach((inputField, index) => {
+                inputField.addEventListener('keydown', (event) => {
+                    let nextFocusElement = null;
+                    if (event.key === 'Enter' || event.key === 'ArrowDown') {
+                        event.preventDefault(); 
+                        const nextIndex = index + 1;
+                        if (nextIndex < allInputs.length) {
+                            nextFocusElement = allInputs[nextIndex];
                         } else {
-                            // Focus on the process button if it's the last room
-                            DOMElements.processOrdersButton.focus();
+                            nextFocusElement = DOMElements.processOrdersButton; // Focus on process button if last input
+                        }
+                    } else if (event.key === 'ArrowUp') {
+                        event.preventDefault();
+                        const prevIndex = index - 1;
+                        if (prevIndex >= 0) {
+                            nextFocusElement = allInputs[prevIndex];
+                        } else {
+                             nextFocusElement = allInputs[allInputs.length - 1]; // Loop to last
+                        }
+                    }
+                    if(nextFocusElement) {
+                        nextFocusElement.focus();
+                        if (typeof nextFocusElement.select === 'function') { // Select text if it's an input field
+                            nextFocusElement.select();
                         }
                     }
                 });
@@ -584,9 +599,8 @@
             
             DOMElements.roomOrdersContainer.querySelectorAll('.room-order-entry-row').forEach(row => {
                 const roomNumLabel = row.querySelector('.room-number-label').textContent;
-                // Extract room number from label like "Zimmer 10:" or "Room 10:"
                 const roomNumMatch = roomNumLabel.match(/\d+/);
-                if (!roomNumMatch) return; // Should not happen if generated correctly
+                if (!roomNumMatch) return; 
                 const roomNum = roomNumMatch[0];
 
                 const orderTextInput = row.querySelector('.room-order-text-input');
@@ -596,30 +610,32 @@
                 let orderPart = line;
                 let roomTime = "";
 
-                // Try to parse time (HHMM format) from the orderPart
-                // Regex looks for 4 digits, optionally preceded/followed by spaces, ensuring it's a word boundary or start/end of string
                 const timeMatch = orderPart.match(/(?:^|\s)(\d{4})(?:\s|$)/); 
                 if (timeMatch) {
                     const potentialTime = timeMatch[1];
-                    const hours = potentialTime.substring(0,2);
-                    const minutes = potentialTime.substring(2,4);
-                    if (parseInt(hours) >= 0 && parseInt(hours) < 24 && parseInt(minutes) >= 0 && parseInt(minutes) < 60) {
-                        roomTime = `${hours}:${minutes}`;
-                        // Remove the matched time part from orderPart for further processing
-                        // This needs to be careful not to remove parts of breakfast codes if time is embedded
+                    const hoursStr = potentialTime.substring(0,2);
+                    const minutesStr = potentialTime.substring(2,4);
+                    if (parseInt(hoursStr) >= 0 && parseInt(hoursStr) < 24 && parseInt(minutesStr) >= 0 && parseInt(minutesStr) < 60) {
+                        roomTime = `${hoursStr}:${minutesStr}`;
                         orderPart = orderPart.replace(timeMatch[0].trim(), '').trim(); 
                     }
                 }
                 
                 const breakfastCodesRaw = orderPart.toUpperCase().replace(/\s+/g, '');
                 let tempBfText = breakfastCodesRaw;
-                const bfRegex = /(\d*)([HSGVEK])/g;
+                
+                const bfRegex = /(\d*)?([HSGVEK])(\d*)?/g; 
                 let bfMatch;
 
                 while ((bfMatch = bfRegex.exec(tempBfText)) !== null) {
-                    const quantity = bfMatch[1] ? parseInt(bfMatch[1]) : 1;
                     const type = bfMatch[2];
-
+                    let quantity = 1;
+                    if (bfMatch[1]) { 
+                        quantity = parseInt(bfMatch[1]);
+                    } else if (bfMatch[3]) { 
+                        quantity = parseInt(bfMatch[3]);
+                    }
+                    
                     if (breakfastDefinitions[type] && quantity > 0) {
                         hasAnyOrder = true;
                         for (let i = 0; i < quantity; i++) {
@@ -958,7 +974,7 @@
         DOMElements.clearAllDataButton.addEventListener('click', () => {
             allProcessedOrders = [];
             ibelsaTotalFromInput = null;
-            DOMElements.roomOrdersContainer.querySelectorAll('.room-order-text-input').forEach(input => input.value = ''); // Clear individual text inputs
+            DOMElements.roomOrdersContainer.querySelectorAll('.room-order-text-input').forEach(input => input.value = ''); 
             DOMElements.ibelsaTotalInput.value = '';
             localStorage.removeItem(LOCAL_STORAGE_KEY); 
             renderCustomizationView();
@@ -985,7 +1001,7 @@
 
             const sessionData = {
                 ibelsaTotal: DOMElements.ibelsaTotalInput.value,
-                roomTextInputs: roomInputsData, // Save array of room text inputs
+                roomTextInputs: roomInputsData, 
                 processedOrders: allProcessedOrders, 
                 lang: currentLanguage
             };
@@ -1017,7 +1033,7 @@
 
                     allProcessedOrders = savedData.processedOrders || [];
                     currentLanguage = savedData.lang || 'de';
-                    updateUIText(); // This will call generateRoomInputFields
+                    updateUIText(); 
                     renderCustomizationView(); 
                     renderProductionSummary(); 
                     renderTimeBasedOverview();
